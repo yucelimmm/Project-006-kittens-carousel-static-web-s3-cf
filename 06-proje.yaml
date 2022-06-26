@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  do the project
+Parameters:
+  mydomain: 
+    Description: Pease select your  DNS name of an existing Amazon Route 53 hosted zone
+    Type: String|Number|CommaDelimitedList
+  fulldomain_name:
+    Description: Full domain name for the webpage
+    Type: String
+  
+  
+Resources:
+  myCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      CertificateAuthorityArn: arn:aws:acm:us-east-1:942265589163:certificate/49ca2294-012c-4edf-a904-1763f4fddad8
+      DomainName: !Ref mydomain
+      DomainValidationOptions: 
+      - DomainName: !Ref mydomain
+        HostedZoneId: 
+      ValidationMethod: DNS
+
+####################################################################################
+
+  my_s3_bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      BucketName: !Ref fulldomain_name
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      VersioningConfiguration:
+        Status: "false"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+  bucet_policy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref fulldomain_name
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Action:
+                - 's3:GetObject'
+                - "s3:PutObject"
+              Effect: Allow
+              Resource: !Join
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref fulldomain_name
+                  - /*
+              Principal: '*'
+              
+  CacheBehavior:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+        AllowedMethods: 
+          - GET, HEAD
+        CachedMethods: 
+          - GET, HEAD
+        CachePolicyId: String
+        Compress: Boolean
+        DefaultTTL: Double
+        FieldLevelEncryptionId: String
+        ForwardedValues: 
+          ForwardedValues
+        FunctionAssociations: 
+          - FunctionAssociation
+        LambdaFunctionAssociations: 
+          - LambdaFunctionAssociation
+        MaxTTL: Double
+        MinTTL: Double
+        OriginRequestPolicyId: String
+        PathPattern: String
+        RealtimeLogConfigArn: String
+        ResponseHeadersPolicyId: String
+        SmoothStreaming: Boolean
+        TargetOriginId: String
+        TrustedKeyGroups: 
+          - String
+        TrustedSigners: 
+          - String
+        ViewerProtocolPolicy: String
+
+      
+
+  
+Outputs:
